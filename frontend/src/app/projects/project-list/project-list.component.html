@@ -1,0 +1,161 @@
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900">Projets</h2>
+            <p class="text-gray-500 mt-1">Gérez vos projets et suivez l'avancement de vos tâches</p>
+        </div>
+        <button *ngIf="isProfesseur" (click)="openCreateModal()"
+            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition-colors shadow-sm flex items-center cursor-pointer">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Nouveau Projet
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center py-12">
+        <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && projects.length === 0"
+        class="bg-white border border-gray-200 rounded-lg p-12 text-center shadow-sm">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">Aucun projet trouvé</h3>
+        <p class="text-gray-500 max-w-sm mx-auto text-sm">Vous n'avez pas encore de projets. Commencez par créer un
+            nouveau projet pour organiser votre travail.</p>
+    </div>
+
+    <!-- Projects Grid -->
+    <div *ngIf="!isLoading && projects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let project of projects"
+            class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md hover:border-indigo-300 transition-all group flex flex-col h-full cursor-pointer"
+            [routerLink]="['/projects', project.id]">
+
+            <div class="flex justify-between items-start mb-4 relative">
+                <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors pr-8">{{
+                    project.name }}</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                        Le {{ project.created_at | date:'shortDate' }}
+                    </span>
+                    <button *ngIf="isProfesseur" (click)="deleteProject($event, project.id)"
+                        class="p-1.5 text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-md transition-colors shadow-sm z-10 opacity-75 hover:opacity-100"
+                        title="Supprimer le projet">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-gray-600 text-sm mb-6 flex-1 line-clamp-2">
+                {{ project.description || 'Aucune description fournie.' }}
+            </p>
+
+            <div class="pt-4 border-t border-gray-100 flex justify-between items-center mt-auto">
+                <div class="flex items-center">
+                    <div
+                        class="w-8 h-8 rounded bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">
+                        {{ project.owner?.charAt(0)?.toUpperCase() }}
+                    </div>
+                    <span class="ml-2 text-sm text-gray-700 font-medium truncate max-w-[100px]">{{ project.owner
+                        }}</span>
+                </div>
+
+                <div class="flex flex-col items-end">
+                    <span class="text-xs font-medium text-gray-500">Projet actif</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div *ngIf="isCreateModalOpen" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            (click)="closeCreateModal()"></div>
+
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!-- Modal panel -->
+                <div
+                    class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <form (ngSubmit)="createProject()">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="sm:flex sm:items-start">
+                                <div
+                                    class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                                    <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Créer un
+                                        nouveau projet</h3>
+                                    <div class="mt-4 space-y-4">
+                                        <div>
+                                            <label for="name" class="block text-sm font-medium text-gray-700">Nom du
+                                                projet *</label>
+                                            <input type="text" id="name" name="name" [(ngModel)]="newProject.name"
+                                                required
+                                                class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"
+                                                placeholder="Ex: Refonte du site web">
+                                        </div>
+                                        <div>
+                                            <label for="description"
+                                                class="block text-sm font-medium text-gray-700">Description</label>
+                                            <textarea id="description" name="description"
+                                                [(ngModel)]="newProject.description" rows="3"
+                                                class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                                placeholder="Description optionnelle de votre projet..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <button type="submit" [disabled]="!newProject.name.trim() || isCreating"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span *ngIf="!isCreating">Créer le projet</span>
+                                <span *ngIf="isCreating" class="flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    Création...
+                                </span>
+                            </button>
+                            <button type="button" (click)="closeCreateModal()"
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

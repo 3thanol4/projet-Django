@@ -1,0 +1,96 @@
+<div class="space-y-6 max-w-5xl mx-auto font-sans">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                Statistiques & Performances
+            </h2>
+            <p class="text-gray-500 mt-1 text-sm">Suivez vos performances globales et l'éligibilité aux primes</p>
+        </div>
+
+        <div>
+            <select [value]="selectedPeriod" (change)="onPeriodChange($event)"
+                class="bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm font-medium cursor-pointer shadow-sm">
+                <option value="trimestriel">Trimestriel</option>
+                <option value="annuel">Annuel</option>
+            </select>
+        </div>
+    </div>
+
+    <div *ngIf="isLoading" class="flex justify-center flex-1 py-12">
+        <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+    </div>
+
+    <div *ngIf="!isLoading && stats" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Primary Stats Column -->
+        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                <h4 class="text-gray-600 font-medium mb-2 text-sm">Tâches totales</h4>
+                <div class="text-4xl font-bold text-gray-900 mb-2">{{ stats.total_tasks }}</div>
+                <div class="text-sm text-green-600 flex items-center mt-4 font-medium">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ stats.completed_tasks }} Terminées
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                <h4 class="text-gray-600 font-medium mb-2 text-sm">Taux de complétion moyen</h4>
+                <div class="text-4xl font-bold text-indigo-600 mb-2">{{ stats.completion_rate }}%</div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
+                    <div class="bg-indigo-500 h-2 rounded-full" [style.width.%]="stats.completion_rate"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ stats.on_time_tasks }} terminées dans les délais accodés.</p>
+            </div>
+        </div>
+
+        <!-- Bonus Eligibility Column (For Professors Only) -->
+        <div *ngIf="isProfesseur"
+            class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-center items-center text-center">
+
+            <h3 class="text-lg font-bold text-gray-900 mb-1 leading-tight">Éligibilité à la Prime</h3>
+            <p class="text-gray-500 text-xs mb-6">Période : {{ stats.period }}</p>
+
+            <div *ngIf="stats.bonus_eligible" class="inline-flex flex-col items-center">
+                <div
+                    class="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-3 border border-green-200">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                        </path>
+                    </svg>
+                </div>
+                <span class="text-base font-medium text-gray-900 mb-1">Félicitations !</span>
+                <span class="text-2xl font-bold text-green-600">
+                    Prime {{ stats.bonus_amount }}
+                </span>
+                <p class="text-xs text-gray-600 mt-2 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
+                    Objectif atteint : {{ stats.completion_rate }}%
+                </p>
+            </div>
+
+            <div *ngIf="!stats.bonus_eligible" class="inline-flex flex-col items-center">
+                <div
+                    class="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-3 border border-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="text-sm font-medium text-gray-700 mb-1">Non éligible ce trimestre</span>
+                <p class="text-xs text-gray-500 mt-2 px-3">
+                    Dépassez les 90% de complétion dans les délais pour la prime de 30K.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
